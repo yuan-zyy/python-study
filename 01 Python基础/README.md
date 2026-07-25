@@ -2384,6 +2384,385 @@ my_tuple = (10, 20, 30)
 
 
 
+#### 4.3.5 字符串 str
+
+##### 1. 字符串基础定义
+
+* **概念**
+
+  `str` 是 Python 内置**不可变序列类型**，用于存储文本字符（中文、英文、数字、符号、转义字符）。
+
+  不可变：字符串创建后**无法修改单个字符**，修改操作会生成新字符串。
+
+* **四种创建方式**
+
+  ```python
+  # 1. 单引号：适合内部包含双引号
+  s1 = 'hello "python"'
+  # 2. 双引号：适合内部包含单引号
+  s2 = "hello 'python'"
+  # 3. 三单/三双引号：多行字符串，保留换行，可直接写单双引号
+  s3 = '''第一行
+  第二行
+  带'单引号'"双引号"'''
+  # 4. 空字符串
+  empty = ""
+  ```
+
+* **转义字符 `\`**
+
+  转义字符 `\`
+
+  | 转义符 | 含义          |
+  | ------ | ------------- |
+  | `\n`   | 换行          |
+  | `\t`   | 制表符（Tab） |
+  | `\\`   | 反斜杠本身    |
+  | `\'`   | 单引号        |
+  | `\"`   | 双引号        |
+  | `\r`   | 回车          |
+
+* **原始字符串 r""**：忽略所有转义，路径专用
+
+  `r`前缀：在字符串前面加上`r`或`R`前缀，表示该字符串不做特殊的处理
+
+  ```python
+  path = r"C:\Users\test\file.txt"  # 不用双反斜杠
+  ```
+
+  
+
+##### 2. 字符串通用操作（序列特性）
+
+**字符串属于序列，支持索引、切片、遍历、长度、成员判断。**
+
+* **索引（正向 / 反向）**
+
+  ```python
+  s = "python"
+  # 正向索引：0开始
+  print(s[0])  # p
+  # 反向索引：-1 最后一位
+  print(s[-1]) # n
+  ```
+
+  ⚠️ 不可变：`s[0] = 'P'` 直接报错。
+
+  <span style="color: red;">**Python 语言中没有其他语言的 char 类型**</span>
+
+* **切片 `[start:end:step]`**
+
+  规则：左闭右开，start 默认 0，end 默认末尾，step 步长默认 1
+
+  ```python
+  s = "0123456789"
+  print(s[2:5])      # 234 取2,3,4
+  print(s[:4])        # 0123 从头到索引4前
+  print(s[6:])        # 6789 索引6到结尾
+  print(s[1:8:2])    # 1357 步长2，隔一个取
+  print(s[::-1])      # 9876543210 字符串反转
+  ```
+
+* **常用序列内置函数**
+
+  ```python
+  s = "abc123"
+  len(s)        # 6，字符串总字符数
+  max(s)        # 字符ASCII最大值 'c'
+  min(s)        # 字符ASCII最小值 '1'
+
+* **成员判断 `in / not in`**
+
+  ```python
+  s = "hello python"
+  print("python" in s)      # True
+  print("java" not in s)    # True
+  ```
+
+* **字符串拼接与重复**
+
+  ```python
+  # 拼接 +
+  s1 = "hello" + " " + "world"
+  # 重复 *
+  s2 = "ab" * 3  # 'ababab'
+  ```
+
+##### 3. 字符串格式化（4 种方式）
+
+* **% 旧式格式化（兼容老代码）**
+
+  ```python
+  name = "小明"
+  age = 18
+  s = "姓名：%s，年龄：%d，小数：%.2f" % (name, age, 3.1415)
+  # %s 字符串 %d整数 %f浮点数 %.2f保留2位小数
+  
+  s2 = "My name is %(name)s, I'm %(age)d" % {'age': 20, 'name': ""}
+  ```
+
+* **str.format () 推荐通用写法**
+
+  ```python
+  # 位置传参
+  s1 = "姓名：{}，年龄：{}".format("小红", 20)
+  # 索引复用
+  s2 = "{0}+{1}={0}".format(10, 5)
+  # 关键字传参
+  s3 = "姓名:{name},年龄:{age}".format(name="小李", age=22)
+  # 数字格式化
+  s4 = "保留3位小数 {:.3f}".format(2.5678)
+  ```
+
+* **f-string（Python3.6+ 最优，性能最高）**
+
+  ```python
+  name = "张三"
+  score = 92.5
+  # 直接嵌入变量、表达式
+  s = f"学生{name}，分数{score:.1f}，总分{score+5}"
+  ```
+
+* **模板字符串 string.Template（安全场景，用户输入）**
+
+  ```python
+  from string import Template
+  t = Template("姓名:$name 年龄:$age")
+  res = t.substitute(name="测试", age=10)
+  ```
+
+##### 4. str 内置全部常用方法
+
+字符串方法**不会修改原字符串**，全部返回新字符串。
+
+* 大小写转换
+
+  ```python
+  s = "Hello Python"
+  s.lower()       # 全小写：hello python
+  s.upper()       # 全大写：HELLO PYTHON
+  s.capitalize()  # 首字母大写，其余小写：Hello python
+  s.title()        # 每个单词首字母大写：Hello Python
+  s.swapcase()     # 大小写互换：hELLO pYTHON
+  ```
+
+  
+
+* 空格 / 指定字符去除
+
+  ```python
+  s = "  python  "
+  s.strip()    # 去除左右两边空白（空格、\n、\t）
+  s.lstrip()   # 只去除左侧
+  s.rstrip()   # 只去除右侧
+  
+  s2 = ",,hello,"
+  s2.strip(",") # 去除左右逗号
+  ```
+
+  
+
+* 查找、计数
+
+  ```python
+  s = "apple banana apple"
+  # find：找到返回起始索引，找不到返回 -1
+  s.find("apple")      # 0
+  s.find("orange")     # -1
+  # rfind：从右往左查找
+  s.rfind("apple")     # 13
+  
+  # index：和find一致，找不到直接抛异常ValueError
+  s.index("banana")
+  # rindex：右查找
+  
+  # count 统计子串出现次数
+  s.count("apple")     # 2
+  ```
+
+  
+
+* 替换 replace
+
+  ```python
+  s = "a b c a"
+  # replace(旧,新,替换次数)
+  res = s.replace("a", "1", 1) # 只替换第一个 '1 b c a'
+  ```
+
+  
+
+* 分割 split /rsplit/splitlines
+
+  ```python
+  s = "java,python,c++"
+  # split：按字符分割，返回列表，默认分割所有空白
+  lst = s.split(",")  # ['java','python','c++']
+  s2 = "a b  c"
+  s2.split() # 无参数自动分割任意空白，结果 ['a','b','c']
+  
+  # rsplit 从右侧分割
+  s.rsplit(",",1) # 只分割最后一个逗号
+  
+  # splitlines 按换行分割
+  text = "a\nb\nc"
+  text.splitlines() # ['a','b','c']
+  ```
+
+  
+
+* 合并 join（列表转字符串，高频）
+
+  ```python
+  lst = ["2026", "07", "25"]
+  # "连接符".join(可迭代对象：列表、元组等)
+  date = "-".join(lst) # '2026-07-25'
+  # 空连接
+  res = "".join(["a","b","c"]) # 'abc'
+  ```
+
+  
+
+* 对齐填充 ljust/rjust/center/zfill
+
+  ```python
+  s = "python"
+  s.center(10, "*")  # 居中，总长度10，*填充 '**python**'
+  s.ljust(10, "-")   # 左对齐 'python----'
+  s.rjust(10, "0")    # 右对齐 '0000python'
+  # zfill 数字补0，右对齐
+  "123".zfill(6) # '000123'
+  ```
+
+  
+
+* 判断类方法（返回布尔值 True/False）
+
+  ```python
+  s1 = "Python123"
+  s2 = "123456"
+  s3 = "python"
+  s4 = "  "
+  
+  s1.isalnum()  # 是否仅字母+数字，无符号空格：True
+  s3.isalpha()  # 是否纯字母：True
+  s2.isdigit()  # 是否纯数字：True
+  s4.isspace()  # 是否全空白字符：True
+  
+  s3.islower()   # 是否全小写
+  s1.isupper()   # 是否全大写
+  s1.istitle()   # 是否每个单词首字母大写
+  ```
+
+  
+
+* 拓展方法
+
+  ```python
+  # startswith / endswith 判断开头结尾
+  s = "test.txt"
+  s.startswith("test") # True
+  s.endswith(".txt")   # True
+  
+  # expandtabs 将tab(\t)替换为空格
+  "a\tb".expandtabs(4) # 'a   b'
+  ```
+  
+  
+
+##### 5. 字符串编码与解码（bytes <-> str）
+
+**核心概念**
+
+* `str`：人类可读文本（Unicode）
+* `bytes`：二进制字节（存储 / 网络传输）
+* 编码 encode：str → bytes
+* 解码 decode：bytes → str
+
+```python
+s = "中文python"
+# 编码，常用utf-8（通用）、gbk（Windows中文）
+b = s.encode("utf-8")
+print(type(b)) # bytes
+
+# 解码
+text = b.decode("utf-8")
+print(text) # 中文python
+```
+
+
+
+##### 6. 字符串常用内置模块辅助工具
+
+**string 标准库**
+
+```python
+import string
+string.ascii_lowercase  # 小写字母 abcdefghijklmnopqrstuvwxyz
+string.ascii_uppercase  # 大写字母
+string.digits            # 数字 0123456789
+string.punctuation       # 所有标点符号
+string.whitespace         # 空白字符 \t \n \r 空格
+```
+
+
+
+##### 7. 常见坑与注意事项
+
+* 字符串不可变
+
+  所有修改操作（replace、strip 等）都会生成新字符串，原字符串不变：
+
+  ```python
+  s = "abc"
+  s.replace("a", "A")
+  print(s) # 'abc' 原字符串没变，需要接收返回值 s = s.replace(...)
+  ```
+
+  
+
+* join 性能远优于循环拼接
+
+  循环 `s += "xxx"` 每次生成新字符串，数据量大时极慢；优先用列表收集再 `join`。
+
+* 索引越界报错
+
+  `s[100]` 字符串长度不足会直接 IndexError，查找优先用 find 而非 index。
+
+* 切片不会越界报错
+
+  `s[:1000]` 超出长度只会截取全部字符串，不会报错。
+
+
+
+##### 8. 字符串实战高频场景示例
+
+**示例 1：去除文本多余空格**
+
+```python
+text = "  hello   world  "
+res = " ".join(text.split()) # 分割所有空白再合并，去除多余空格
+print(res) # hello world
+```
+
+**示例 2：手机号隐藏中间 4 位**
+
+```python
+phone = "13812345678"
+hide = f"{phone[:3]}****{phone[-4:]}"
+print(hide) # 138****5678
+```
+
+**示例 3：判断文件后缀**
+
+```python
+file_name = "data.csv"
+if file_name.endswith((".csv", ".xlsx", ".xls")):
+    print("表格文件")
+```
+
+
+
 ## 第 5 章 哈希表
 
 
