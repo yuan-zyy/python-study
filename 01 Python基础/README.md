@@ -2498,7 +2498,7 @@ my_tuple = (10, 20, 30)
   s = "姓名：%s，年龄：%d，小数：%.2f" % (name, age, 3.1415)
   # %s 字符串 %d整数 %f浮点数 %.2f保留2位小数
   
-  s2 = "My name is %(name)s, I'm %(age)d" % {'age': 20, 'name': ""}
+  s2 = "My name is %(name)s, I'm %(age)d" % {'age': 20, 'name': "Jerry"}
   ```
 
 * **str.format () 推荐通用写法**
@@ -2760,6 +2760,325 @@ file_name = "data.csv"
 if file_name.endswith((".csv", ".xlsx", ".xls")):
     print("表格文件")
 ```
+
+
+
+#### 4.3.6 bytes和bytearray及字节序
+
+##### 1. 基础概念区分
+
+* **str**：Unicode 文本字符串，存储人类可读字符，**文本层**
+
+* **bytes**：不可变字节序列，存储原始二进制数据（0~255），**二进制层**
+
+* **bytearray**：可变字节序列，功能与 bytes 几乎一致，支持原地修改
+
+* **字节序（Endian）**：多字节数字在内存 / 网络中的存储顺序，分大端、小端
+
+##### 2. 核心特性对比表
+
+| 特性       | bytes                                | bytearray                        | str                |
+| ---------- | ------------------------------------ | -------------------------------- | ------------------ |
+| 可变性     | 不可变（无法修改单个字节）           | 可变（支持增删改）               | 不可变             |
+| 存储内容   | 0~255 整数（字节）                   | 0~255 整数（字节）               | Unicode 字符       |
+| 字面量标识 | `b'xxx'`                             | `bytearray(b'xxx')`              | `'xxx'/"xxx"`      |
+| 常用场景   | 网络传输、文件二进制读取、常量二进制 | 动态拼接、修改二进制、缓冲区读写 | 文本处理、打印展示 |
+
+##### 3. bytes 详解（不可变字节）
+
+* **四种创建方式**
+
+  ```python
+  # 方式1：b前缀字面量（仅支持ASCII字符，中文必须转义）
+  b1 = b"abc123"
+  b2 = b'\xe4\xb8\xad\xe6\x96\x87'  # 中文utf-8字节
+  
+  # 方式2：字符串编码 str.encode() 【最常用】
+  text = "中文python"
+  b3 = text.encode("utf-8")  # str → bytes
+  
+  # 方式3：通过整数序列创建（数值必须0~255）
+  b4 = bytes([97, 98, 99])  # b'abc'
+  
+  # 方式4：创建指定长度空字节，填充0
+  b5 = bytes(5)  # b'\x00\x00\x00\x00\x00'
+  ```
+
+  
+
+* **基础操作（序列通用）**
+
+  ```python
+  b = b"python"
+  print(b[0])       # 112，返回字节对应的ASCII数字
+  print(b[1:4])     # b'yth' 切片返回新bytes
+  print(112 in b)   # True
+  print(len(b))     # 6
+  
+  # 不可变验证：修改直接报错
+  # b[0] = 80  # TypeError: 'bytes' object does not support item assignment
+  ```
+
+  
+
+* **常用内置方法**
+
+  bytes 方法和 str 高度相似，但参数、返回值均为字节：
+
+  ```python
+  b = b"apple,banana,apple"
+  b.find(b"apple")    # 0 查找子字节串
+  b.count(b"apple")    # 2 计数
+  b.replace(b"a", b"A") # 替换，返回新bytes
+  b.split(b",")         # 分割成列表 [b'apple',b'banana']
+  
+  # 解码：bytes → str
+  text = b'\xe4\xb8\xad\xe6\x96\x87'.decode("utf-8")
+  print(text) # 中文
+  ```
+
+  
+
+##### 4. bytearray 详解（可变字节数组）
+
+* **创建方式**
+
+  ```python
+  # 1. 基于bytes创建
+  ba1 = bytearray(b"abc")
+  
+  # 2. 基于字符串编码创建
+  ba2 = bytearray("中文", encoding="utf-8")
+  
+  # 3. 整数序列初始化
+  ba3 = bytearray([97,98,99])
+  
+  # 4. 指定长度，默认填充0
+  ba4 = bytearray(4) # bytearray(b'\x00\x00\x00\x00')
+  ```
+
+  
+
+* **核心优势：原地修改（可变）**
+
+  ```python
+  ba = bytearray(b"abcd")
+  # 修改单个字节，直接生效
+  ba[0] = 65
+  print(ba) # bytearray(b'Abcd')
+  
+  # 追加字节
+  ba.append(101)
+  print(ba) # bytearray(b'Abcde')
+  
+  # 扩展多个字节
+  ba.extend([102,103])
+  
+  # 删除切片
+  del ba[0:2]
+  ```
+
+  
+
+* **bytearray 与 bytes 互转**
+
+  ```python
+  ba = bytearray(b"test")
+  b = bytes(ba)    # bytearray → bytes（生成不可变副本）
+  new_ba = bytearray(b) # bytes → bytearray
+  ```
+
+##### 5. str、bytes、bytearray 完整转换流程
+
+```python
+str  --encode(编码)-->  bytes
+bytes --decode(编码)-->  str
+
+bytes --bytearray()--> bytearray
+bytearray --bytes()--> bytes
+```
+
+示例：
+
+```python
+s = "测试"
+b = s.encode("utf-8")       # str → bytes
+ba = bytearray(b)            # bytes → bytearray
+b2 = bytes(ba)                # bytearray → bytes
+s2 = b2.decode("utf-8")      # bytes → str
+```
+
+##### 6. 字节序（大端 Big-Endian / 小端 Little-Endian）
+
+* 什么是字节序
+
+  多字节数值（如 `0x1234` 占 2 字节）存储时，**高低字节的存放顺序**，只对**多字节整数**生效，单字节无字节序概念。
+
+  假设有 16 位整数：`0x1234`
+
+  - 高位字节：`0x12`
+  - 低位字节：`0x34`
+
+* 两种字节序规则
+
+  * 大端序 Big-Endian（BE）
+
+    高位字节存在低内存地址（人类阅读顺序，网络标准）
+
+    `0x1234` 存储：`[0x12, 0x34]`
+
+  * 小端序 Little-Endian（LE）
+
+    低位字节存在低内存地址（x86/x64 CPU 本地存储）
+
+    `0x1234` 存储：`[0x34, 0x12]`Z
+
+* Python struct 模块：字节序打包 / 解包（核心工具）
+
+  `struct` 用于：整数 ↔ 定长 bytes，手动指定字节序
+
+  * 字节序标识符
+
+    | 符号 | 字节序         | 适用场景                   |
+    | ---- | -------------- | -------------------------- |
+    | `>`  | 大端序 BE      | 网络传输、TCP/IP、协议标准 |
+    | `<`  | 小端序 LE      | Windows/x86 本地二进制文件 |
+    | `=`  | 本机默认字节序 | 兼容当前 CPU               |
+
+  * 基础打包 pack / 解包 unpack
+
+    语法：
+
+    - `struct.pack(格式符, 数值)`：整数 → bytes（按指定字节序）
+    - `struct.unpack(格式符, bytes)`：bytes → 元组（还原整数）
+
+    常用格式符：
+
+    - `H`：unsigned short 2 字节无符号整数
+    - `I`：unsigned int 4 字节无符号整数
+    - `Q`：unsigned long long 8 字节无符号整数
+
+    示例 1：2 字节数字 0x1234 大小端对比
+
+    ```python
+    import struct
+    
+    num = 0x1234
+    # 大端序打包
+    be_bytes = struct.pack(">H", num)
+    print("大端bytes:", be_bytes) # b'\x124' 即 [0x12,0x34]
+    
+    # 小端序打包
+    le_bytes = struct.pack("<H", num)
+    print("小端bytes:", le_bytes) # b'4\x12' 即 [0x34,0x12]
+    
+    # 解包还原数字
+    print(struct.unpack(">H", be_bytes)[0]) # 4660 = 0x1234
+    print(struct.unpack("<H", le_bytes)[0]) # 4660
+    ```
+
+    示例 2：4 字节整数网络传输（强制大端）
+
+    ```python
+    import struct
+    data = 123456
+    # 打包4字节大端二进制
+    send_bytes = struct.pack(">I", data)
+    # 网络发送 send_bytes
+    
+    # 接收后解包
+    recv_num = struct.unpack(">I", send_bytes)[0]
+    print(recv_num) # 123456
+    ```
+
+* 字节序使用场景总结
+
+  * **网络通信（TCP/UDP）**：统一使用**大端序 `>`**（网络字节序）
+  * **Windows 二进制文件（BMP、exe）**：x86 CPU 小端序 `<`
+  * **跨平台文件、通用协议**：固定大端，避免不同 CPU 解析错乱
+
+##### 7. 高频实战场景
+
+* 场景 1：文件二进制读写
+
+  ```python
+  # 二进制读，返回bytes
+  with open("test.jpg", "rb") as f:
+      file_bytes = f.read()
+  
+  # 二进制写，仅支持bytes/bytearray
+  with open("copy.jpg", "wb") as f:
+      f.write(file_bytes)
+  ```
+
+  
+
+* 场景 2：动态缓冲区（bytearray）
+
+  网络接收数据时，不断追加字节，优先用可变 bytearray，避免频繁生成新 bytes：
+
+  ```python
+  buffer = bytearray()
+  # 循环接收分片
+  chunk1 = b"hello "
+  chunk2 = b"world"
+  buffer.extend(chunk1)
+  buffer.extend(chunk2)
+  print(bytes(buffer)) # b'hello world'
+  ```
+
+  
+
+* 场景 3：中文编码字节处理
+
+  ```python
+  text = "中国"
+  b_utf8 = text.encode("utf-8")    # 通用编码
+  b_gbk = text.encode("gbk")        # Windows中文编码
+  print(b_utf8)  # b'\xe4\xb8\xad\xe5\x9b\xbd'
+  print(b_gbk)   # b'\xd6\xd0\xb9\xfa'
+  ```
+
+  
+
+##### 8 .常见踩坑点
+
+* **b'' 字面量不能直接写中文**
+
+  `b"中文"` 直接报错，中文必须先用 `str.encode()` 生成字节。
+
+* **bytes 不可变，循环拼接性能差**
+
+  大量拼接二进制不要用 `b1 + b2`，改用 bytearray.extend。
+
+* **struct 打包必须匹配字节长度**
+
+  用`H`(2 字节) 打包超大整数会直接溢出报错。
+
+* **字节序只影响多字节数字**
+
+  单字节数据、字符串编码后的 bytes，不存在大小端区分。
+
+* **解码编码必须统一**
+
+  utf-8 编码的 bytes 用 gbk 解码会出现中文乱码。
+
+##### 9. 完整速记
+
+* **bytes**：不可变二进制，常量、网络收发；
+
+* **bytearray**：可变二进制，缓冲区、动态修改；
+
+* **str**：Unicode 文本，人类阅读展示；
+
+* **字节序**：多字节数字存储顺序，网络统一大端`>`，x86 本地小端`<`；
+
+* **struct**：实现整数与定长字节的互相转换，手动控制字节序。
+* 
+
+#### 4.3.7 切片
+
+
 
 
 
